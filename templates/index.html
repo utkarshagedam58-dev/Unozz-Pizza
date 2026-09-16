@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unnozz Pizza</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">UNNOZZ <span>PIZZA</span> 🍕</div>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#menu">Menu</a></li>
+            <li><a href="#offers">Offers</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+        <div class="nav-actions">
+            <button class="cart-button" onclick="openCart()">🛒 Cart <span id="cartCount">0</span></button>
+            <span id="userGreeting" class="user-greeting"></span>
+            <button class="account-button hidden" id="accountButton" onclick="openAccount()">👤 Account</button>
+            <button class="cart-button" id="authNavButton" onclick="openLogin()">👤 Login</button>
+        </div>
+    </nav>
+
+    <section class="hero" id="home">
+        <div class="hero-text">
+            <h1>Delicious Pizza<br><span>Made For You!</span></h1>
+            <p>Fresh ingredients, cheesy toppings and amazing taste delivered right to your doorstep.</p>
+            <button class="order-btn" onclick="goToMenu()">Order Now 🍕</button>
+        </div>
+        <div class="hero-pizza">🍕</div>
+    </section>
+
+    <section class="offer" id="offers">
+        <div>
+            <h2>🔥 Special Offer</h2>
+            <p>Use <strong>UNNOZZ20</strong> at checkout and get 20% off your order.</p>
+        </div>
+        <div class="offer-code">UNNOZZ20</div>
+    </section>
+
+    <section class="menu-section" id="menu">
+        <h2 class="section-title">Our Menu</h2>
+        <div class="categories">
+            <button class="category-btn active" onclick="filterMenu('All', this)">All</button>
+            <button class="category-btn" onclick="filterMenu('Pizza', this)">🍕 Pizza</button>
+            <button class="category-btn" onclick="filterMenu('Sides', this)">🥖 Sides</button>
+            <button class="category-btn" onclick="filterMenu('Desserts', this)">🍫 Desserts</button>
+            <button class="category-btn" onclick="filterMenu('Beverages', this)">🥤 Beverages</button>
+        </div>
+
+        <div class="menu-grid">
+            {% for item in menu %}
+            <div class="card" data-category="{{ item.category }}">
+                <div class="card-image">{{ item.emoji }}</div>
+                <div class="card-content">
+                    <h3>{{ item.name }}</h3>
+                    <p class="description">{{ item.description }}</p>
+                    <div class="price-row">
+                        <div class="price">₹{{ item.price }}</div>
+                        <button class="add-btn" onclick="addToCart({{ item.id }})">ADD +</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="cart-overlay" id="cartOverlay">
+        <div class="cart">
+            <div class="cart-header">
+                <h2>Your Cart 🛒</h2>
+                <button class="close" onclick="closeCart()">✕</button>
+            </div>
+            <div id="cartItems" class="cart-items">
+                <p class="empty-cart">Your cart is empty 🛒</p>
+            </div>
+            <div class="cart-footer">
+                <div class="total-row"><span>Subtotal</span><span id="subtotal">₹0</span></div>
+                <div class="total-row"><span>Delivery</span><span id="delivery">FREE</span></div>
+                <div class="coupon-summary hidden" id="cartDiscountRow"><span>Discount</span><span id="cartDiscount">-₹0</span></div>
+                <div class="total-row grand-total"><span>Total</span><span id="total">₹0</span></div>
+                <button class="checkout" onclick="checkout()">Proceed to Checkout →</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="login-modal" id="loginModal">
+        <div class="modal-box">
+            <button class="close" onclick="closeLogin()">✕</button>
+            <h2 id="authTitle">Login 👤</h2>
+
+            <div id="registerFields" class="hidden">
+                <input class="form-input" id="registerName" type="text" placeholder="Full Name">
+            </div>
+
+            <input class="form-input" id="authEmail" type="email" placeholder="Email">
+            <input class="form-input" id="authPassword" type="password" placeholder="Password">
+
+            <button class="form-button" id="authButton" onclick="submitAuth()">Login</button>
+
+            <div class="switch">
+                <span id="authSwitchText">Don't have an account?</span>
+                <span id="authSwitchLink" onclick="toggleAuthMode"> Register</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="account-modal" id="accountModal">
+        <div class="account-box">
+            <button class="close" onclick="closeAccount()">✕</button>
+            <h2>My Account 👤</h2>
+            <div class="account-profile" id="accountProfile">Loading...</div>
+            <h3>Past Orders 📦</h3>
+            <div id="orderHistory" class="order-history">
+                <p class="muted">Loading your orders...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="order-modal" id="orderModal">
+        <div class="modal-box">
+            <div class="success">✅</div>
+            <h2>Order Placed!</h2>
+            <p id="orderMessage">Thank you for ordering from Unnozz Pizza.</p>
+            <button class="done-btn" onclick="closeOrderModal()">Done</button>
+        </div>
+    </div>
+
+    <div class="checkout-overlay" id="checkoutOverlay">
+        <div class="modal-box checkout-box">
+            <button class="close" onclick="closeCheckout()">✕</button>
+            <h2>Checkout 🧾</h2>
+            <p class="checkout-login-note">You must be logged in to place and track your order.</p>
+
+            <input class="form-input" type="text" id="customerName" placeholder="Your Name">
+            <input class="form-input" type="tel" id="customerPhone" placeholder="Mobile Number">
+            <textarea class="form-input" id="customerAddress" placeholder="Delivery Address"></textarea>
+
+            <div class="coupon-box">
+                <label for="couponInput">Discount Coupon</label>
+                <div class="coupon-row">
+                    <input class="form-input coupon-input" type="text" id="couponInput" placeholder="Enter coupon code">
+                    <button class="apply-coupon" type="button" onclick="applyCoupon()">Apply</button>
+                </div>
+                <p class="coupon-hint">Try: <strong>UNNOZZ20</strong> — 20% off</p>
+                <p class="coupon-status" id="couponStatus"></p>
+            </div>
+
+            <div class="checkout-summary">
+                <div><span>Subtotal</span><span id="checkoutSubtotal">₹0</span></div>
+                <div><span>Delivery</span><span id="checkoutDelivery">FREE</span></div>
+                <div id="checkoutDiscountRow" class="discount-line hidden"><span>Discount</span><span id="checkoutDiscount">-₹0</span></div>
+                <div class="checkout-total"><span>Total</span><span id="checkoutTotal">₹0</span></div>
+            </div>
+
+            <button class="place-order form-button" onclick="placeOrder()">Place Order 🍕</button>
+        </div>
+    </div>
+
+    <button class="chat-button" onclick="toggleChat()">💬</button>
+    <div class="chatbot" id="chatbot">
+        <div class="chat-header">
+            <h3>AI Pizza Assistant 🤖</h3>
+            <button class="chat-close" onclick="toggleChat()">✕</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-message bot"><div class="chat-bubble">Hello! Ask me about pizzas, prices, offers or delivery. 🍕</div></div>
+        </div>
+        <div class="chat-input">
+            <input id="chatInput" type="text" placeholder="Ask something..." onkeydown="if(event.key==='Enter') sendMessage()">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <footer id="contact">
+        <h2>UNNOZZ PIZZA 🍕</h2>
+        <p>Fresh ingredients, cheesy toppings and great taste.</p>
+    </footer>
+
+    <script>const menuItems = {{ menu_json | safe }};</script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
